@@ -1,38 +1,62 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <link
-            rel="shortcut icon"
-            type="image/x-icon"
-            href="https://64.media.tumblr.com/tumblr_lkl74gHrDR1qfamg6.gif"
-        />
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Devi Garcia · Linux &amp; Cybersecurity Portfolio — DIRTY.PIZZA
+        </title>
         <meta
             name="description"
-            content="Devi Garcia — Linux systems technician, CompTIA A+ certified, cybersecurity focused homelab builder. Portfolio hosted at dirty.pizza."
+            content="Devi Garcia — CompTIA A+ certified IT technician specializing in Linux systems, cybersecurity, networking and homelab infrastructure. Projects, tools and technical documentation, built from the terminal up."
         />
         <meta
             name="keywords"
             content="Linux, Cybersecurity, CompTIA A+, Homelab, IT Technician, Networking, Docker, Arch Linux, Ubuntu Server"
         />
         <meta name="author" content="Devi Garcia" />
-        <meta property="og:title" content="DIRTY.PIZZA — Devi Garcia" />
-        <meta
-            property="og:description"
-            content="Linux • Cybersecurity • Homelab • CompTIA A+"
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://dirty.pizza/" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://dirty.pizza/" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon-32x32.png"
+        />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta property="og:site_name" content="DIRTY.PIZZA" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://dirty.pizza/" />
         <meta
-            property="og:image"
-            content="https://raw.githubusercontent.com/Deoxizn/deoxizn.github.io/refs/heads/main/dirtypizza.png"
+            property="og:title"
+            content="Devi Garcia · Linux & Cybersecurity Portfolio — DIRTY.PIZZA"
         />
         <meta
-            name="description"
-            content="Devi Garcia's Linux and cybersecurity portfolio. Homelab projects, infrastructure builds, automation experiments, and technical documentation — built from the terminal up."
+            property="og:description"
+            content="CompTIA A+ certified IT technician — Linux, cybersecurity, networking and homelab infrastructure. Built from the terminal up."
+        />
+        <meta property="og:image" content="https://dirty.pizza/og-image.jpg" />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta
+            property="og:image:alt"
+            content="Stylized pizza-slice logo for dirty.pizza — Devi Garcia's portfolio"
+        />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+            name="twitter:title"
+            content="Devi Garcia · Linux & Cybersecurity Portfolio — DIRTY.PIZZA"
+        />
+        <meta
+            name="twitter:description"
+            content="CompTIA A+ certified IT technician — Linux, cybersecurity, networking and homelab infrastructure. Built from the terminal up."
+        />
+        <meta name="twitter:image" content="https://dirty.pizza/og-image.jpg" />
+        <meta
+            name="twitter:image:alt"
+            content="Stylized pizza-slice logo for dirty.pizza"
         />
         <script type="application/ld+json">
             {
@@ -40,6 +64,8 @@
                 "@type": "Person",
                 "name": "Devi Garcia",
                 "url": "https://dirty.pizza/",
+                "image": "https://dirty.pizza/og-image.jpg",
+                "description": "CompTIA A+ certified IT technician specializing in Linux systems, cybersecurity, networking and homelab infrastructure.",
                 "sameAs": [
                     "https://github.com/Deoxizn",
                     "https://www.linkedin.com/in/david-garcia-318a3ba7/"
@@ -239,6 +265,7 @@
             .section-title {
                 color: var(--accent);
                 margin: 2rem 0 2rem;
+                font-size: 1rem;
                 font-weight: bold;
                 text-transform: uppercase;
                 letter-spacing: 2px;
@@ -397,7 +424,7 @@
                 <div id="terminal"></div>
             </header>
             <section>
-                <div class="section-title">biography</div>
+                <h2 class="section-title">biography</h2>
                 <p style="line-height: 1.8; font-size: 1.05rem">
                     CompTIA A+ certified IT technician with hands-on experience
                     in computer repair, Linux systems, networking, and
@@ -443,12 +470,13 @@
                 </div>
             </div>
             <section>
-                <div class="section-title">projects / repositories</div>
+                <h2 class="section-title">projects / repositories</h2>
                 <div class="grid">
                     <a
                         href="https://dirty.pizza/"
                         class="box"
                         target="_blank"
+                        rel="noopener noreferrer"
                     >
                         <div class="box-subtitle">DIRTY.PIZZA</div>
                         <p>Personal Portfolio Website.</p>
@@ -460,6 +488,7 @@
                         href="https://stellarchy.dirty.pizza/"
                         class="box"
                         target="_blank"
+                        rel="noopener noreferrer"
                     >
                         <div class="box-subtitle">STELLARCHY</div>
                         <p>
@@ -476,6 +505,7 @@
                         href="https://github.com/CochiseLinuxUsersGroup/CochiseLinuxUsersGroup.github.io"
                         class="box"
                         target="_blank"
+                        rel="noopener noreferrer"
                     >
                         <div class="box-subtitle">CLUG_Portal</div>
                         <p>
@@ -496,30 +526,35 @@
                                     href="https://github.com/Deoxizn/omarchy-space-bound-theme"
                                     class="theme-pill"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >Space Bound</a
                                 >
                                 <a
                                     href="https://github.com/Deoxizn/omarchy-unicorn-dream-theme"
                                     class="theme-pill"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >Unicorn Dream</a
                                 >
                                 <a
                                     href="https://github.com/Deoxizn/omarchy-killer-klowns-theme"
                                     class="theme-pill"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >Killer Klowns</a
                                 >
                                 <a
                                     href="https://github.com/Deoxizn/omarchy-hacker-vibes-theme"
                                     class="theme-pill"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >Hacker Vibes</a
                                 >
                                 <a
                                     href="https://github.com/Deoxizn/omarchy-one-piece-theme"
                                     class="theme-pill"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >One Piece</a
                                 >
                             </p>
@@ -531,6 +566,7 @@
                                     href="https://github.com/Deoxizn/waybars"
                                     class="t-link"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >waybars</a
                                 >
                                 — Modular Wayland bar configurations.
@@ -543,6 +579,7 @@
                                     href="https://github.com/Deoxizn/devicebattstats"
                                     class="t-link"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >Device Battery Stats</a
                                 >
                                 — Battery and charging status for wireless devices.
@@ -552,6 +589,7 @@
                                     href="https://github.com/Deoxizn/keybind-manager"
                                     class="t-link"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >Keybind Manager</a
                                 >
                                 — Add, override, and disable Hyprland keybindings from the bar.
@@ -561,6 +599,7 @@
                                     href="https://github.com/Deoxizn/BarDisplay"
                                     class="t-link"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >BarDisplay</a
                                 >
                                 — Bar widget for Omarchy/Quickshell.
@@ -570,6 +609,7 @@
                                     href="https://github.com/Deoxizn/omarchy-doom"
                                     class="t-link"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >omarchy-doom</a
                                 >
                                 — Everything should have Doom. A bar widget for Omarchy/Quickshell.
@@ -579,6 +619,7 @@
                                     href="https://github.com/Deoxizn/now-playing"
                                     class="t-link"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >Now Playing</a
                                 >
                                 — Shows movies currently playing at nearby theatres via BigScreen.com.
@@ -591,6 +632,7 @@
                                     href="https://github.com/Deoxizn/OmaBackup"
                                     class="t-link"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >OmaBackup</a
                                 >
                                 — Compare and backup Omarchy dotfiles, with Lua conversion support.
@@ -600,6 +642,7 @@
                                     href="https://github.com/Deoxizn/snaptui"
                                     class="t-link"
                                     target="_blank"
+                        rel="noopener noreferrer"
                                     >snaptui</a
                                 >
                                 — TUI for managing btrfs snapshots via snapperd's D-Bus API.
@@ -615,7 +658,7 @@
             </section>
 
             <section>
-                <div class="section-title">homelab_manifest</div>
+                <h2 class="section-title">homelab_manifest</h2>
                 <div class="grid">
                     <div class="box">
                         <div class="box-subtitle">multimedia</div>
@@ -651,7 +694,7 @@
             </section>
 
             <section>
-                <div class="section-title">contact</div>
+                <h2 class="section-title">contact</h2>
                 <div class="terminal-link-wrapper">
                     <a
                         href="javascript:void(0)"
@@ -690,6 +733,7 @@
                     href="https://github.com/Deoxizn/deoxizn.github.io"
                     class="link"
                     target="_blank"
+                        rel="noopener noreferrer"
                     >DIRTY.PIZZA</a
                 ><br />
                 SERIOUS SYSTEMS. QUESTIONABLE DOMAIN.<br />
