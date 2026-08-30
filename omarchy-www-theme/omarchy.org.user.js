@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Omarchy.org — Project System Theme (auto)
 // @namespace    omarchy-org-theme
-// @version      1.0.0
+// @version      1.0.1
 // @description  Mirrors your installed Omarchy theme (colors.toml + wallpaper) onto omarchy.org — auto-updates on `omarchy theme set` with no repaste.
 // @author       deoxizn
 // @match        https://omarchy.org/*
@@ -13,6 +13,9 @@
 // @grant        GM_setValue
 // @connect      127.0.0.1
 // @connect      localhost
+// @downloadURL  https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js
+// @updateURL    https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js
+// @homepageURL  https://dirty.pizza/omarchy-www-theme/
 // ==/UserScript==
 
 /*

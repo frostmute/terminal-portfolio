@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>omarchy-www-theme — Project your Omarchy theme onto omarchy.org · DIRTY.PIZZA</title>
-  <meta name="description" content="Make omarchy.org match your installed Omarchy theme — auto-syncing Tampermonkey bridge for Omarchy Quattro. One install, every `omarchy theme set` projects live. No repaste." />
+  <meta name="description" content="Make omarchy.org match your installed Omarchy theme — auto-syncing Tampermonkey bridge. One install, every `omarchy theme set` projects live. No repaste." />
   <meta name="keywords" content="Omarchy, Omarchy theme, omarchy.org, Tampermonkey, Violentmonkey, Stylus, linux theme, arch linux" />
   <meta name="author" content="Devi Garcia" />
   <link rel="canonical" href="https://dirty.pizza/omarchy-www-theme/" />
@@ -183,11 +183,11 @@
         <b>omarchy.org</b> repaints in your current <code>colors.toml</code> — every <code>omarchy theme set</code> follows live, no repaste.
       </p>
       <div>
-        <span class="pill">omarchy quattro</span>
         <span class="pill">tampermonkey / violentmonkey / scriptcat</span>
         <span class="pill">systemd --user</span>
-        <span class="pill">22+ themes</span>
+        <span class="pill">any theme</span>
         <span class="pill">light + dark</span>
+        <span class="pill">auto-sync</span>
       </div>
       <div class="cta-row">
         <a class="btn" href="#quickstart">Quick start →</a>
@@ -220,18 +220,15 @@
       <div class="step">
         <h3>1 — Install the bridge</h3>
         <p>Creates builder + server + hook + systemd service, builds CSS for your current theme, starts the localhost server.</p>
-        <pre><button class="copy" data-copy>copy</button><code><span class="g">curl</span> -fsSL https://dirty.pizza/omarchy-www-theme/install.sh | <span class="g">bash</span>
-<span class="c"># or local copy:</span>
-<span class="g">bash</span> ~/Work/deoxizn.github.io/omarchy-www-theme/install.sh</code></pre>
+        <pre><button class="copy" data-copy>copy</button><code><span class="g">curl</span> -fsSL https://dirty.pizza/omarchy-www-theme/install.sh | <span class="g">bash</span></code></pre>
         <p class="small">Verify: <code>curl http://127.0.0.1:17823/theme.css | head</code> should show <code>/* Theme: neo-eldritch */</code> + <code>systemctl --user status omarchy-org-theme-server</code> → <code>active</code>.</p>
       </div>
       <div class="step">
         <h3>2 — Install the userscript</h3>
         <p>Browser → <b>Violentmonkey</b> (recommended) or Tampermonkey / ScriptCat → Dashboard → <i>Create new script</i> → replace content → paste → Save.</p>
-        <pre><button class="copy" data-copy>copy</button><code><span class="c"># open the file and copy it:</span>
-<span class="g">cat</span> ~/Work/deoxizn.github.io/omarchy-www-theme/omarchy.org.user.js
-<span class="c"># or download directly from the site:</span>
-<span class="g">xdg-open</span> https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js</code></pre>
+        <pre><button class="copy" data-copy>copy</button><code><span class="c"># install URL — paste into ScriptCat / Violentmonkey / Tampermonkey "Install from URL":</span>
+https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js
+<span class="c"># or click Download below and your manager will prompt to install</span></code></pre>
         <div class="cta-row" style="margin-top:0.9rem">
           <a class="btn" href="omarchy.org.user.js" download>Download omarchy.org.user.js</a>
           <a class="btn btn--ghost" href="https://violentmonkey.github.io/" target="_blank" rel="noopener">Get Violentmonkey</a>
@@ -270,11 +267,9 @@
       <div class="box"><div class="box-subtitle">network</div><ul><li>Nothing external — localhost only</li><li>No API keys, no Omarchy.org changes</li><li>Works offline once installed</li></ul></div>
     </div>
 
-    <h2 class="section-title" id="manual">manual install (if curl fails)</h2>
-    <pre><button class="copy" data-copy>copy</button><code><span class="g">mkdir</span> -p ~/.cache/omarchy-org ~/.local/bin ~/.config/systemd/user ~/.config/omarchy/hooks/theme-set.d
-<span class="c"># copy files from the site dir:</span>
-<span class="g">cp</span> ~/Work/deoxizn.github.io/omarchy-www-theme/omarchy.org.user.js ~/.cache/omarchy-org/
-<span class="g">bash</span> ~/Work/deoxizn.github.io/omarchy-www-theme/install.sh
+    <h2 class="section-title" id="manual">manual install (if curl pipe fails)</h2>
+    <pre><button class="copy" data-copy>copy</button><code><span class="g">curl</span> -fsSL https://dirty.pizza/omarchy-www-theme/install.sh -o /tmp/omarchy-www-install.sh
+<span class="g">bash</span> /tmp/omarchy-www-install.sh
 <span class="g">systemctl</span> --user daemon-reload
 <span class="g">systemctl</span> --user enable --now omarchy-org-theme-server.service
 <span class="g">systemctl</span> --user status omarchy-org-theme-server
