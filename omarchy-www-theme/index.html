@@ -225,16 +225,17 @@
       </div>
       <div class="step">
         <h3>2 — Install the userscript</h3>
-        <p>Browser → <b>Violentmonkey</b> (recommended) or Tampermonkey / ScriptCat → Dashboard → <i>Create new script</i> → replace content → paste → Save.</p>
-        <pre><button class="copy" data-copy>copy</button><code><span class="c"># install URL — paste into ScriptCat / Violentmonkey / Tampermonkey "Install from URL":</span>
-https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js
-<span class="c"># or click Download below and your manager will prompt to install</span></code></pre>
+        <p>Browser → <b>Violentmonkey</b> (recommended) or Tampermonkey / <b>ScriptCat</b> → use <b>Install from URL</b> (do <i>not</i> use <code>xdg-open</code> in terminal).</p>
+        <pre><button class="copy" data-copy>copy</button><code><span class="c"># ScriptCat: Dashboard → + → Import from URL</span>
+<span class="c"># Violentmonkey: Dashboard → + → Install from URL</span>
+<span class="c"># Tampermonkey: Dashboard → Utilities → Install from URL</span>
+https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js</code></pre>
         <div class="cta-row" style="margin-top:0.9rem">
-          <a class="btn" href="omarchy.org.user.js" download>Download omarchy.org.user.js</a>
+          <a class="btn" href="https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js" target="_blank" rel="noopener">Install .user.js — click to trigger manager</a>
           <a class="btn btn--ghost" href="https://violentmonkey.github.io/" target="_blank" rel="noopener">Get Violentmonkey</a>
-          <a class="btn btn--ghost" href="https://www.tampermonkey.net/" target="_blank" rel="noopener">Get Tampermonkey</a>
+          <a class="btn btn--ghost" href="https://docs.scriptcat.org/" target="_blank" rel="noopener">Get ScriptCat</a>
         </div>
-        <p class="small">Tampermonkey will ask to allow <code>127.0.0.1</code> / <code>localhost</code> → <b>Allow</b>. Required for <code>GM_xmlhttpRequest</code>.</p>
+        <p class="small"><b>ScriptCat tip:</b> don't run <code>xdg-open URL</code> in terminal — open the URL in the browser where ScriptCat is installed, or paste it into <code>Import from URL</code>. Tampermonkey will ask to allow <code>127.0.0.1</code> / <code>localhost</code> → <b>Allow</b> (needed for <code>GM_xmlhttpRequest</code>).</p>
       </div>
       <div class="step">
         <h3>3 — Reload omarchy.org</h3>
@@ -332,11 +333,12 @@ https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js
 
     <h2 class="section-title" id="download">download</h2>
     <div class="cta-row">
-      <a class="btn" href="omarchy.org.user.js" download>omarchy.org.user.js — userscript</a>
-      <a class="btn btn--ghost" href="install.sh" download>install.sh — one-liner</a>
+      <a class="btn" href="https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js" target="_blank" rel="noopener">omarchy.org.user.js — install URL</a>
+      <a class="btn btn--ghost" href="https://dirty.pizza/omarchy-www-theme/install.sh" target="_blank" rel="noopener">install.sh — one-liner</a>
       <a class="btn btn--ghost" href="http://127.0.0.1:17823/theme.css" target="_blank">live theme.css</a>
       <a class="btn btn--ghost" href="http://127.0.0.1:17823/theme.json" target="_blank">live theme.json</a>
     </div>
+    <p class="small" style="margin-top:0.6rem">If your manager doesn't auto-detect, copy the install URL and use <code>Import from URL</code> / <code>Install from URL</code> in its dashboard.</p>
     <p class="small" style="margin-top:1rem">Installed size: 2 scripts + 1 service + 1 hook. No npm, no build, no root. Works offline. <code>dirty.pizza/omarchy-www-theme</code> → <code>dirty.pizza/omarchy-www-theme/</code> (trailing slash is fine — GitHub Pages).</p>
 
     <footer>
