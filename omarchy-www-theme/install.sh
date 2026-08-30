@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+# omarchy-www-theme installer - dirty.pizza/omarchy-www-theme
+# Installs builder + server + systemd service + hook in one go
+set -euo pipefail
+
+echo "[omarchy-www-theme] installing bridge..."
+
+mkdir -p ~/.local/bin ~/.cache/omarchy-org ~/.config/systemd/user ~/.config/omarchy/hooks/theme-set.d
+
+# --- builder ---
+cat > ~/.local/bin/omarchy-org-theme-build <<'PYEOF'
+#!/usr/bin/env python3
+"""
+omarchy-org-theme-build: generate omarchy.org override CSS from Omarchy current theme
+Reads ~/.local/state/omarchy/current/theme/colors.toml
+Writes ~/.cache/omarchy-org/theme.css + theme.json + copies background
+"""
+import sys, json, shutil, tomllib
+from pathlib import Path
+HOME = Path.home()
+THEME_DIR = Path(HOME / ".local/state/omarchy/current/theme")
+THEME_NAME_FILE = Path(HOME / ".local/state/omarchy/current/theme.name")
+COLORS = THEME_DIR / "colors.toml"
+CACHE = Path(HOME / ".cache/omarchy-org")
+CSS = CACHE / "theme.css"
+JSON = CACHE / "theme.json"
+BG_CACHE = CACHE / "background"
+def pick(data, *keys, fallback=None):
+    for k in keys:
+        v = data.get(k)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+    return fallback
+def hex_to_rgb(hexstr):
+    h = hexstr.lstrip("#")
+    if len(h)==3: h="".join(c*2 for c in h)
+    h=h[:6]
+    try: r=int(h[0:2],16); g=int(h[2:4],16); b=int(h[4:6],16); return f"{r}, {g}, {b}"
+    except: return "0, 0, 0"
+def hex_strip(hexstr): return "#" + hexstr.lstrip("#")[:6]
+def main():
+    import tomllib
+    from pathlib import Path
+    HOME=Path.home()
+    THEME_DIR=Path(HOME/".local/state/omarchy/current/theme")
+    COLORS=THEME_DIR/"colors.toml"
+    CACHE=Path(HOME/".cache/omarchy-org")
+    if not COLORS.exists():
+        print(f"ERROR: {COLORS} not found",file=sys.stderr); sys.exit(1)
+    data=tomllib.loads(COLORS.read_text())
+    mode=pick(data,"mode",fallback="dark")
+    THEME_NAME_FILE=Path(HOME/".local/state/omarchy/current/theme.name")
+    theme_name=THEME_NAME_FILE.read_text().strip() if THEME_NAME_FILE.exists() else THEME_DIR.resolve().name
+    background=pick(data,"background","bg","color0",fallback="#1a1b26")
+    lighter_bg=pick(data,"lighter_bg","lighter_background",fallback=background)
+    dark_bg=pick(data,"dark_bg","dark_background",fallback=background)
+    darker_bg=pick(data,"darker_bg","darker_background",fallback=dark_bg)
+    bg_night=background
+    bg_storm=lighter_bg if lighter_bg!=background else dark_bg
+    foreground=pick(data,"foreground","fg","color7",fallback="#c0caf5")
+    muted=pick(data,"muted","color8",fallback="#414868")
+    accent=pick(data,"accent","blue","color4",fallback="#7aa2f7")
+    blue=pick(data,"blue","accent","color4",fallback="#7aa2f7")
+    cyan=pick(data,"cyan","color6",fallback="#7dcfff")
+    bright_cyan=pick(data,"bright_cyan","brightCyan","cyan",fallback=cyan)
+    green=pick(data,"green","color2",fallback="#9ece6a")
+    red=pick(data,"red","color1",fallback="#f7768e")
+    yellow=pick(data,"yellow","color3",fallback="#e0af68")
+    magenta=pick(data,"magenta","purple","color5",fallback="#bb9af7")
+    turquoise=bright_cyan if bright_cyan!=cyan else cyan
+    CACHE.mkdir(parents=True,exist_ok=True)
+    BG_CACHE=CACHE/"background"
+    wallpaper_copied=False
+    bg_src=HOME/".local/state/omarchy/current/background"
+    import shutil
+    bg_src=Path(bg_src)
+    if bg_src.exists() and bg_src.stat().st_size>0:
+        try:
+            shutil.copy2(bg_src,BG_CACHE); wallpaper_copied=True
+            header=BG_CACHE.read_bytes()[:8]
+            ext="png"
+            if header.startswith(b"\xff\xd8\xff"): ext="jpg"
+            elif header.startswith(b"GIF"): ext="gif"
+            elif header.startswith(b"\x89PNG"): ext="png"
+            for e in ["jpg","png","webp"]:
+                p=CACHE/f"background.{e}"
+                if p.exists() or p.is_symlink():
+                    try: p.unlink()
+                    except: pass
+            (CACHE/f"background.{ext}").symlink_to(BG_CACHE.name)
+        except Exception as e: print(f"warn: wallpaper copy failed: {e}",file=sys.stderr)
+    else:
+        bg_dir=THEME_DIR/"backgrounds"
+        if bg_dir.is_dir():
+            imgs=sorted(p for p in bg_dir.iterdir() if p.is_file() and p.suffix.lower() in {".jpg",".jpeg",".png",".webp"})
+            if imgs:
+                try:
+                    pick_img=next((p for p in imgs if theme_name.lower().replace(" ","-") in p.name.lower()),imgs[0])
+                    shutil.copy2(pick_img,BG_CACHE); wallpaper_copied=True
+                    ext=pick_img.suffix.lstrip(".").lower()
+                    for e in ["jpg","png","webp"]:
+                        p=CACHE/f"background.{e}"
+                        if p.exists() or p.is_symlink():
+                            try: p.unlink()
+                            except: pass
+                    (CACHE/f"background.{ext}").symlink_to(BG_CACHE.name)
+                except Exception as e: print(f"warn: theme bg copy failed: {e}",file=sys.stderr)
+    css=f"""/* Auto-generated by omarchy-org-theme-build from {COLORS} */
+/* Theme: {theme_name} | mode: {mode} | wallpaper: {"yes" if wallpaper_copied else "no"} */
+:root {{
+  --rgb-background-night: {hex_to_rgb(bg_night)};
+  --rgb-background-storm: {hex_to_rgb(bg_storm)};
+  --rgb-terminal-black: {hex_to_rgb(muted)};
+  --rgb-terminal-blue: {hex_to_rgb(blue)};
+  --rgb-terminal-cyan: {hex_to_rgb(cyan)};
+  --rgb-terminal-white: {hex_to_rgb(foreground)};
+  --rgb-turquoise: {hex_to_rgb(turquoise)};
+  --rgb-green: {hex_to_rgb(green)};
+  --rgb-black: 0, 0, 0;
+  --rgb-white: 255, 255, 255;
+  --color-background-night: rgb(var(--rgb-background-night));
+  --color-background-storm: rgb(var(--rgb-background-storm));
+  --color-terminal-black: rgb(var(--rgb-terminal-black));
+  --color-terminal-blue: rgb(var(--rgb-terminal-blue));
+  --color-terminal-cyan: rgb(var(--rgb-terminal-cyan));
+  --color-terminal-white: rgb(var(--rgb-terminal-white));
+  --color-turquoise: rgb(var(--rgb-turquoise));
+  --color-green: rgb(var(--rgb-green));
+}}
+html {{ color-scheme: {"light" if mode=="light" else "dark"}; }}
+body {{ background: var(--color-background-night) !important; color: var(--color-terminal-blue) !important; }}
+a {{ color: var(--color-terminal-cyan) !important; }}
+a:hover, a:focus-visible {{ color: var(--color-terminal-white) !important; }}
+.button {{ background: var(--color-terminal-blue) !important; color: var(--color-background-night) !important; }}
+.button:hover {{ background: var(--color-turquoise) !important; color: var(--color-background-night) !important; }}
+:root {{ --border-color: rgb(var(--rgb-terminal-black) / 0.8); }}
+::selection {{ background: {hex_strip(pick(data,"selection","selection_background",fallback=accent))}; color: {hex_strip(pick(data,"selection_foreground",fallback=darker_bg))}; }}
+*::-webkit-scrollbar-thumb {{ background: rgb(var(--rgb-terminal-black)); }}
+*::-webkit-scrollbar-track {{ background: rgb(var(--rgb-background-night)); }}
+pre, code {{ background: rgb(var(--rgb-background-storm) / 0.6) !important; border-color: rgb(var(--rgb-terminal-black) / 0.5) !important; }}
+"""
+    if wallpaper_copied:
+        css+=f"""
+/* Optional wallpaper - uncomment to enable
+body::before {{
+  content: ""; position: fixed; inset: 0; z-index: -1; opacity: 0.12; pointer-events: none;
+  background: url("http://127.0.0.1:17823/background") center/cover no-repeat fixed;
+  filter: saturate(0.9) brightness(0.9);
+}}
+*/
+"""
+    (CACHE/"theme.css").write_text(css)
+    payload={"theme":theme_name,"mode":mode,"background":hex_strip(background),"lighter_bg":hex_strip(lighter_bg),"foreground":hex_strip(foreground),"accent":hex_strip(accent),"blue":hex_strip(blue),"cyan":hex_strip(cyan),"green":hex_strip(green),"muted":hex_strip(muted),"red":hex_strip(red),"yellow":hex_strip(yellow),"magenta":hex_strip(magenta),"wallpaper":wallpaper_copied,"rgb":{"background-night":hex_to_rgb(bg_night),"background-storm":hex_to_rgb(bg_storm),"terminal-black":hex_to_rgb(muted),"terminal-blue":hex_to_rgb(blue),"terminal-cyan":hex_to_rgb(cyan),"terminal-white":hex_to_rgb(foreground),"turquoise":hex_to_rgb(turquoise),"green":hex_to_rgb(green)}}
+    (CACHE/"theme.json").write_text(json.dumps(payload,indent=2)+"\n")
+    print(f"omarchy-org: built {CACHE/'theme.css'} for '{theme_name}' ({mode})")
+    if wallpaper_copied: print(f"omarchy-org: wallpaper -> {CACHE/'background'}")
+    return 0
+if __name__=="__main__": sys.exit(main())
+PYEOF
+chmod +x ~/.local/bin/omarchy-org-theme-build
+
+# --- server ---
+cat > ~/.local/bin/omarchy-org-theme-server <<'PYEOF2'
+#!/usr/bin/env python3
+import sys
+from pathlib import Path
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+from functools import partial
+CACHE = Path.home() / ".cache/omarchy-org"
+HOST="127.0.0.1"; PORT=17823
+class CORSHandler(SimpleHTTPRequestHandler):
+    def __init__(self,*a,directory=None,**kw): super().__init__(*a,directory=str(CACHE),**kw)
+    def end_headers(self):
+        self.send_header("Access-Control-Allow-Origin","*")
+        self.send_header("Access-Control-Allow-Methods","GET, OPTIONS, HEAD")
+        self.send_header("Access-Control-Allow-Headers","*")
+        self.send_header("Access-Control-Max-Age","86400")
+        self.send_header("Cache-Control","no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma","no-cache")
+        super().end_headers()
+    def do_OPTIONS(self): self.send_response(204); self.end_headers()
+    def log_message(self,fmt,*a): pass
+def main():
+    CACHE.mkdir(parents=True,exist_ok=True)
+    for n in ["theme.css","theme.json"]:
+        p=CACHE/n
+        if not p.exists(): p.write_text("/* waiting */\n")
+    handler=partial(CORSHandler,directory=str(CACHE))
+    try:
+        with ThreadingHTTPServer((HOST,PORT),handler) as httpd:
+            print(f"omarchy-org-theme-server: serving {CACHE} at http://{HOST}:{PORT}/",file=sys.stderr)
+            httpd.serve_forever()
+    except OSError as e:
+        print(f"Failed to bind {HOST}:{PORT}: {e}",file=sys.stderr); sys.exit(1)
+if __name__=="__main__": main()
+PYEOF2
+chmod +x ~/.local/bin/omarchy-org-theme-server
+
+# --- systemd ---
+cat > ~/.config/systemd/user/omarchy-org-theme-server.service <<'SVCEOF'
+[Unit]
+Description=Omarchy.org theme bridge (127.0.0.1:17823) for browser userscript
+After=network.target
+Wants=network.target
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/omarchy-org-theme-server
+Restart=always
+RestartSec=2
+Environment=PYTHONUNBUFFERED=1
+[Install]
+WantedBy=default.target
+SVCEOF
+
+# --- hook ---
+cat > ~/.config/omarchy/hooks/theme-set.d/99-omarchy-org-sync.sh <<'HOOKEOF'
+#!/usr/bin/env bash
+set -euo pipefail
+BUILD="$HOME/.local/bin/omarchy-org-theme-build"
+CACHE="$HOME/.cache/omarchy-org"
+[[ -x "$BUILD" ]] || exit 0
+"$BUILD" >&2 || exit 0
+command -v systemctl >/dev/null 2>&1 && systemctl --user start omarchy-org-theme-server.service 2>/dev/null || true
+touch "$CACHE/theme.css" 2>/dev/null || true
+echo "omarchy-org-sync: ready at http://127.0.0.1:17823/theme.css" >&2
+HOOKEOF
+chmod +x ~/.config/omarchy/hooks/theme-set.d/99-omarchy-org-sync.sh
+
+# --- enable ---
+systemctl --user daemon-reload
+systemctl --user enable --now omarchy-org-theme-server.service
+~/.local/bin/omarchy-org-theme-build
+
+echo ""
+echo "[omarchy-www-theme] done."
+echo "  CSS:  http://127.0.0.1:17823/theme.css"
+echo "  JSON: http://127.0.0.1:17823/theme.json"
+echo "  Hook: ~/.config/omarchy/hooks/theme-set.d/99-omarchy-org-sync.sh"
+echo ""
+echo "Next: install userscript from https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js"
+echo "  -> Violentmonkey/Tampermonkey -> Create script -> paste -> Save"

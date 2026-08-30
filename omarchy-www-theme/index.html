@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>omarchy-www-theme — Project your Omarchy theme onto omarchy.org · DIRTY.PIZZA</title>
+  <meta name="description" content="Make omarchy.org match your installed Omarchy theme — auto-syncing Tampermonkey bridge for Omarchy Quattro. One install, every `omarchy theme set` projects live. No repaste." />
+  <meta name="keywords" content="Omarchy, Omarchy theme, omarchy.org, Tampermonkey, Violentmonkey, Stylus, linux theme, arch linux" />
+  <meta name="author" content="Devi Garcia" />
+  <link rel="canonical" href="https://dirty.pizza/omarchy-www-theme/" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta property="og:site_name" content="DIRTY.PIZZA" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dirty.pizza/omarchy-www-theme/" />
+  <meta property="og:title" content="omarchy-www-theme — Project your Omarchy theme onto omarchy.org" />
+  <meta property="og:description" content="One Tampermonkey script + local bridge. omarchy.org repaints in your current Omarchy colors on every `omarchy theme set`. No repaste." />
+  <meta property="og:image" content="https://dirty.pizza/og-image.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="omarchy-www-theme — omarchy.org in your Omarchy colors" />
+  <meta name="twitter:description" content="Live theme bridge: omarchy.org mirrors ~/.local/state/omarchy/current/theme/colors.toml" />
+  <meta name="twitter:image" content="https://dirty.pizza/og-image.jpg" />
+
+  <style>
+    :root {
+      --bg: #0b0f0c;
+      --bg-soft: #0e1a12;
+      --card: rgba(20,30,20,0.38);
+      --text: #d1f7c4;
+      --muted: #4e6a4e;
+      --muted2: #6a8a6e;
+      --accent: #33ff99;
+      --accent-dim: rgba(51,255,153,0.12);
+      --accent-glow: rgba(51,255,153,0.6);
+      --danger: #ff3333;
+      --line: #1e2b22;
+      --line-bright: #2a3d2f;
+      --code-bg: #0f1e13;
+      --code-line: #1a2f1e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      padding: 4rem 2rem 2rem;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    body:before{
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.03), rgba(255,255,255,0.03) 1px, transparent 1px, transparent 3px);
+      opacity:0.25; z-index:9999;
+    }
+    body:after{
+      content:""; position:fixed; inset:0; pointer-events:none;
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.45) 100%);
+      z-index:9998;
+    }
+    .fixed-status{ position:fixed; top:25px; right:30px; text-align:right; z-index:1000; pointer-events:none; }
+    .led-green{ color:var(--accent); font-size:0.82rem; font-weight:bold; text-shadow:0 0 8px var(--accent),0 0 15px var(--accent); }
+    #clock{ font-size:1.1rem; color:var(--accent); font-weight:bold; text-shadow:0 0 10px var(--accent); }
+    .container{ max-width: 980px; margin:0 auto; position:relative; z-index:1; }
+    header{ margin-bottom:1.5rem; }
+    #terminal{ min-height: 240px; white-space:pre-wrap; line-height:1.4; text-shadow:0 0 6px rgba(51,255,153,0.15); }
+    .terminal-line{ min-height:1.2em; }
+    .cursor{ display:inline-block; width:8px; height:15px; background:var(--accent); margin-left:5px; animation:blink 1s infinite; vertical-align:middle; }
+    @keyframes blink{50%{opacity:0}}
+    .danger-text{ color:var(--danger); text-shadow:0 0 5px var(--danger); }
+    .p-crust{ color:#d4a373; } .p-topping{ color:#ff4d4d; font-weight:bold; }
+
+    .section-title{
+      color:var(--accent); margin:3.2rem 0 1.2rem; font-size:1rem; font-weight:bold;
+      text-transform:uppercase; letter-spacing:2px; border-bottom:1px solid var(--line); padding-bottom:10px;
+    }
+    .section-title:before{ content:"> "; }
+    .section-sub{ color:var(--muted); font-size:0.92rem; margin:-0.8rem 0 1.2rem; line-height:1.7; }
+
+    a{ color:var(--accent); text-decoration-thickness:0.09em; text-underline-offset:0.15em; }
+    a:hover{ color:#fff; text-shadow:0 0 10px var(--accent); }
+
+    .hero{ border:1px solid var(--line); background:var(--card); padding:2rem; margin-top:1rem; position:relative; overflow:hidden; }
+    .hero:before{ content:""; position:absolute; inset:0; background:linear-gradient(120deg, rgba(51,255,153,0.06), transparent 60%); pointer-events:none; }
+    .hero h1{ margin:0; font-size: clamp(1.6rem, 4vw, 2.3rem); line-height:1.15; letter-spacing:-0.02em; color:var(--accent); text-shadow:0 0 14px rgba(51,255,153,0.3); }
+    .hero h1 span{ color:var(--text); }
+    .hero .tagline{ margin:0.9rem 0 0; color:var(--muted2); font-size:1.05rem; line-height:1.7; }
+    .hero .tagline b{ color:var(--accent); }
+    .pill{ display:inline-block; font-size:0.68rem; letter-spacing:1px; text-transform:uppercase; border:1px solid var(--line-bright); color:var(--accent); padding:4px 9px; margin-right:6px; margin-top:8px; }
+
+    .cta-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:1.6rem; }
+    .btn{
+      display:inline-block; padding:10px 18px; border:1px solid var(--accent); color:var(--accent);
+      text-decoration:none; font-size:0.92rem; font-weight:bold; letter-spacing:0.5px;
+      background:rgba(51,255,153,0.06); transition:0.2s;
+    }
+    .btn:hover{ background:var(--accent); color:#00100a; box-shadow:0 0 20px var(--accent-glow); text-shadow:none; }
+    .btn--ghost{ border-color:var(--line-bright); color:var(--muted2); background:transparent; }
+    .btn--ghost:hover{ border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+
+    .grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:1.2rem; margin-top:1rem; }
+    .box{ border:1px solid var(--line); background:var(--card); padding:1.6rem; }
+    .box-subtitle{ color:var(--accent); font-size:0.85rem; margin-bottom:0.9rem; opacity:0.9; }
+    .box-subtitle:before{ content:"# "; }
+    .box p{ margin:0.6rem 0; font-size:0.95rem; color:var(--text); line-height:1.7; }
+    .box ul{ list-style:none; padding:0; margin:0.6rem 0 0; }
+    .box li{ margin-bottom:8px; font-size:0.92rem; color:var(--text); }
+    .box li:before{ content:"- "; color:var(--muted); margin-right:8px; }
+    .small{ font-size:0.86rem; color:var(--muted2); }
+
+    /* code */
+    pre{
+      background: var(--code-bg); border:1px solid var(--line); border-radius:6px;
+      padding:1rem 1.15rem; overflow-x:auto; position:relative; margin:0.9rem 0 1.2rem;
+      box-shadow: inset 0 0 24px rgba(51,255,153,0.06);
+    }
+    code{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:0.90em; }
+    pre code{ color:#b8e6c8; }
+    .c{ color:var(--muted); } .g{ color:var(--accent); } .y{ color:#d9d07a; } .r{ color:#ff7a7a; }
+    .copy{
+      position:absolute; top:8px; right:8px; font-size:0.72rem; letter-spacing:1px; text-transform:uppercase;
+      border:1px solid var(--line-bright); background:#0a1510; color:var(--muted2); padding:5px 9px; cursor:pointer;
+    }
+    .copy:hover{ border-color:var(--accent); color:var(--accent); }
+    .copy.ok{ border-color:var(--accent); color:var(--accent); background:rgba(51,255,153,0.12); }
+
+    .callout{
+      border:1px solid rgba(51,255,153,0.28); background: linear-gradient(120deg, rgba(51,255,153,0.08), rgba(51,255,153,0.02));
+      border-radius:8px; padding:1rem 1.15rem; margin:1rem 0; font-size:0.93rem; line-height:1.7;
+    }
+    .callout--warn{ border-color: rgba(255,160,60,0.35); background: rgba(255,160,60,0.07); }
+    .callout b{ color:var(--accent); }
+    .callout--warn b{ color:#ffb86a; }
+
+    table{ width:100%; border-collapse:collapse; font-size:0.90rem; margin:0.6rem 0; border:1px solid var(--line); }
+    th, td{ text-align:left; padding:0.65rem 0.85rem; border-bottom:1px solid var(--line); vertical-align:top; }
+    th{ color:var(--accent); font-weight:bold; white-space:nowrap; background:rgba(51,255,153,0.04); }
+    tr:last-child td{ border-bottom:none; }
+    kbd{
+      font-family: ui-monospace, monospace; font-size:0.80em; background:#0a1510; border:1px solid var(--line-bright);
+      border-bottom-width:2px; border-radius:6px; padding:2px 6px; color:var(--accent);
+    }
+
+    .steps{ counter-reset: step; display:grid; gap:1rem; }
+    .step{ border:1px solid var(--line); background:var(--card); padding:1.2rem 1.2rem 1.2rem 3.4rem; position:relative; }
+    .step:before{ counter-increment:step; content: counter(step); position:absolute; left:1rem; top:1.15rem; width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--accent); color:var(--accent); font-weight:bold; font-size:0.85rem; background:rgba(51,255,153,0.08); }
+    .step h3{ margin:0 0 0.4rem; font-size:0.95rem; color:var(--accent); letter-spacing:0.5px; }
+    .step p{ margin:0.3rem 0; font-size:0.93rem; color:var(--muted2); }
+
+    .path{ color:var(--muted2); font-size:0.82rem; word-break:break-all; }
+    .path b{ color:var(--accent); font-weight:normal; }
+
+    footer{ margin-top:5rem; padding-top:2.2rem; border-top:1px solid var(--line); color:var(--muted); font-size:0.85rem; line-height:2; }
+    .footer-comment{ color:#1e2b22; } .footer-comment:hover{ color:var(--muted); }
+    .crumb{ font-size:0.82rem; color:var(--muted); margin-bottom:1rem; }
+    .crumb a{ color:var(--muted2); }
+
+    @media(max-width:720px){
+      body{ padding:3.2rem 1rem 1.5rem; }
+      .fixed-status{ top:12px; right:14px; }
+      .hero{ padding:1.4rem; }
+      pre{ padding:0.9rem 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="fixed-status">
+    <span class="led-green">● THEME_BRIDGE // ONLINE</span>
+    <div id="clock">00:00:00</div>
+  </div>
+
+  <div class="container">
+    <div class="crumb"><a href="/">dirty.pizza</a> / omarchy-www-theme</div>
+
+    <header>
+      <div id="terminal"></div>
+    </header>
+
+    <div class="hero">
+      <h1>omarchy-www-theme <span>— project your Omarchy theme onto omarchy.org</span></h1>
+      <p class="tagline">
+        One <b>Violentmonkey / Tampermonkey</b> script + a tiny <b>127.0.0.1 bridge</b>. <br/>
+        <b>omarchy.org</b> repaints in your current <code>colors.toml</code> — every <code>omarchy theme set</code> follows live, no repaste.
+      </p>
+      <div>
+        <span class="pill">omarchy quattro</span>
+        <span class="pill">tampermonkey / violentmonkey / scriptcat</span>
+        <span class="pill">systemd --user</span>
+        <span class="pill">22+ themes</span>
+        <span class="pill">light + dark</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn" href="#quickstart">Quick start →</a>
+        <a class="btn btn--ghost" href="omarchy.org.user.js" download>Download .user.js</a>
+        <a class="btn btn--ghost" href="install.sh" download>install.sh</a>
+        <a class="btn btn--ghost" href="https://github.com/Deoxizn/deoxizn.github.io/tree/main/omarchy-www-theme" target="_blank" rel="noopener">View source</a>
+      </div>
+    </div>
+
+    <h2 class="section-title">overview</h2>
+    <p class="section-sub">
+      <code>omarchy.org</code> ships a hard-coded Tokyo Night palette in <code>root.css</code> (<code>--rgb-background-night</code>, <code>--rgb-terminal-blue</code>...). This bridge reads your installed theme at <code>~/.local/state/omarchy/current/theme/colors.toml</code>, converts it to those same CSS vars, serves it on <code>http://127.0.0.1:17823/theme.css</code>, and the userscript injects it at <code>document-start</code>. Result: omarchy.org looks like your desktop.
+    </p>
+
+    <div class="grid">
+      <div class="box"><div class="box-subtitle">what it themes</div>
+        <p><code>omarchy.org</code> background, text, links, buttons, borders, selection, scrollbars, code blocks — all from 6 vars in <code>root.css:1</code>. Images/video stay original.</p>
+        <p class="small">Light themes (Catppuccin Latte, Flexoki Light, Lupine, White) auto set <code>color-scheme: light</code>.</p>
+      </div>
+      <div class="box"><div class="box-subtitle">what it doesn't touch</div>
+        <p>Your system theme. This is browser-only. `noctalia-sync.sh:1` / `stellarchy` themes keep working - this hook is independent.</p>
+        <p class="small">Wallpaper is optional (disabled by default) - enable the commented <code>body::before</code> in the generated CSS if you want it.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title" id="quickstart">quick start — 2 commands + 1 paste</h2>
+    <div class="callout"><b>Time:</b> ~60 seconds. You do the install once; after that every <code>omarchy theme set &lt;name&gt;</code> auto-updates omarchy.org (refocus tab, no repaste).</div>
+
+    <div class="steps">
+      <div class="step">
+        <h3>1 — Install the bridge</h3>
+        <p>Creates builder + server + hook + systemd service, builds CSS for your current theme, starts the localhost server.</p>
+        <pre><button class="copy" data-copy>copy</button><code><span class="g">curl</span> -fsSL https://dirty.pizza/omarchy-www-theme/install.sh | <span class="g">bash</span>
+<span class="c"># or local copy:</span>
+<span class="g">bash</span> ~/Work/deoxizn.github.io/omarchy-www-theme/install.sh</code></pre>
+        <p class="small">Verify: <code>curl http://127.0.0.1:17823/theme.css | head</code> should show <code>/* Theme: neo-eldritch */</code> + <code>systemctl --user status omarchy-org-theme-server</code> → <code>active</code>.</p>
+      </div>
+      <div class="step">
+        <h3>2 — Install the userscript</h3>
+        <p>Browser → <b>Violentmonkey</b> (recommended) or Tampermonkey / ScriptCat → Dashboard → <i>Create new script</i> → replace content → paste → Save.</p>
+        <pre><button class="copy" data-copy>copy</button><code><span class="c"># open the file and copy it:</span>
+<span class="g">cat</span> ~/Work/deoxizn.github.io/omarchy-www-theme/omarchy.org.user.js
+<span class="c"># or download directly from the site:</span>
+<span class="g">xdg-open</span> https://dirty.pizza/omarchy-www-theme/omarchy.org.user.js</code></pre>
+        <div class="cta-row" style="margin-top:0.9rem">
+          <a class="btn" href="omarchy.org.user.js" download>Download omarchy.org.user.js</a>
+          <a class="btn btn--ghost" href="https://violentmonkey.github.io/" target="_blank" rel="noopener">Get Violentmonkey</a>
+          <a class="btn btn--ghost" href="https://www.tampermonkey.net/" target="_blank" rel="noopener">Get Tampermonkey</a>
+        </div>
+        <p class="small">Tampermonkey will ask to allow <code>127.0.0.1</code> / <code>localhost</code> → <b>Allow</b>. Required for <code>GM_xmlhttpRequest</code>.</p>
+      </div>
+      <div class="step">
+        <h3>3 — Reload omarchy.org</h3>
+        <p>Open <a href="https://omarchy.org" target="_blank" rel="noopener">https://omarchy.org</a> → it should already be in your Omarchy colors. Try switching themes:</p>
+        <pre><button class="copy" data-copy>copy</button><code><span class="g">omarchy</span> theme set catppuccin
+<span class="g">omarchy</span> theme set flexoki-light   <span class="c"># light theme demo</span>
+<span class="g">omarchy</span> theme set neo-eldritch
+<span class="c"># then alt-tab back to omarchy.org - it repolls on focus within 3s</span></code></pre>
+        <p class="small">DevTools → Console → filter <code>omarchy-org</code> shows <code>[omarchy-org] applied neo-eldritch 2.6K</code>. Check raw CSS at <a href="http://127.0.0.1:17823/theme.css" target="_blank">http://127.0.0.1:17823/theme.css</a> and <a href="http://127.0.0.1:17823/theme.json" target="_blank">theme.json</a>.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title" id="how">how it works</h2>
+    <table>
+      <tr><th>Piece</th><th>Path</th><th>Role</th></tr>
+      <tr><td><b>Builder</b></td><td><code>~/.local/bin/omarchy-org-theme-build</code></td><td>Python: reads <code>~/.local/state/omarchy/current/theme/colors.toml</code> (+ <code>theme.name</code>), hex→rgb, writes <code>~/.cache/omarchy-org/theme.css</code> + <code>theme.json</code> + copies <code>~/.local/state/omarchy/current/background</code> → <code>~/.cache/omarchy-org/background</code></td></tr>
+      <tr><td><b>Server</b></td><td><code>~/.local/bin/omarchy-org-theme-server</code><br/><code>~/.config/systemd/user/omarchy-org-theme-server.service</code></td><td><code>ThreadingHTTPServer</code> on <code>127.0.0.1:17823</code> with <code>Access-Control-Allow-Origin: *</code> + <code>no-store</code>. Serves the cache dir. Started via <code>systemctl --user enable --now</code>.</td></tr>
+      <tr><td><b>Hook</b></td><td><code>~/.config/omarchy/hooks/theme-set.d/99-omarchy-org-sync.sh</code></td><td>Runs after every <code>omarchy theme set</code> (like <code>noctalia-sync.sh</code>). Rebuilds CSS and ensures server is up.</td></tr>
+      <tr><td><b>Userscript</b></td><td><code>omarchy.org.user.js</code> on <code>omarchy.org/*</code></td><td><code>GM_xmlhttpRequest</code> fetches <code>http://127.0.0.1:17823/theme.css</code> at <code>document-start</code>, injects as <code>&lt;style id="omarchy-org-theme-bridge"&gt;</code>, repolls every 3s while visible (15s hidden) + on <code>visibilitychange</code>/<code>focus</code>.</td></tr>
+    </table>
+
+    <div class="callout">
+      <b>Mapping</b> <code>root.css</code> → <code>colors.toml</code>: <code>--rgb-background-night</code>=<code>background</code>, <code>--rgb-background-storm</code>=<code>lighter_bg</code>, <code>--rgb-terminal-black</code>=<code>muted</code>, <code>--rgb-terminal-blue</code>=<code>blue/accent</code>, <code>--rgb-terminal-cyan</code>=<code>cyan</code>, <code>--rgb-terminal-white</code>=<code>foreground</code>, <code>--rgb-turquoise</code>=<code>bright_cyan</code>, <code>--rgb-green</code>=<code>green</code>. Light themes auto flip <code>color-scheme</code>.
+    </div>
+
+    <h2 class="section-title" id="requirements">requirements</h2>
+    <div class="grid">
+      <div class="box"><div class="box-subtitle">system</div><ul><li>Omarchy Quattro (any channel)</li><li><code>python3</code> + <code>systemd --user</code> (stock)</li><li><code>~/.local/state/omarchy/current/theme/colors.toml</code> exists</li></ul></div>
+      <div class="box"><div class="box-subtitle">browser</div><ul><li><b>Violentmonkey</b> (recommended, MV3-clean) or Tampermonkey / ScriptCat</li><li>Allow <code>127.0.0.1</code> / <code>localhost</code> connect when prompted</li><li>Stylus/Stylish <b>won't auto-sync</b> — see below</li></ul></div>
+      <div class="box"><div class="box-subtitle">network</div><ul><li>Nothing external — localhost only</li><li>No API keys, no Omarchy.org changes</li><li>Works offline once installed</li></ul></div>
+    </div>
+
+    <h2 class="section-title" id="manual">manual install (if curl fails)</h2>
+    <pre><button class="copy" data-copy>copy</button><code><span class="g">mkdir</span> -p ~/.cache/omarchy-org ~/.local/bin ~/.config/systemd/user ~/.config/omarchy/hooks/theme-set.d
+<span class="c"># copy files from the site dir:</span>
+<span class="g">cp</span> ~/Work/deoxizn.github.io/omarchy-www-theme/omarchy.org.user.js ~/.cache/omarchy-org/
+<span class="g">bash</span> ~/Work/deoxizn.github.io/omarchy-www-theme/install.sh
+<span class="g">systemctl</span> --user daemon-reload
+<span class="g">systemctl</span> --user enable --now omarchy-org-theme-server.service
+<span class="g">systemctl</span> --user status omarchy-org-theme-server
+<span class="g">curl</span> -s http://127.0.0.1:17823/theme.css | <span class="g">head</span> -n 20</code></pre>
+
+    <h2 class="section-title" id="files">files & paths</h2>
+    <div class="box" style="margin-top:1rem">
+      <div class="box-subtitle">live artifacts</div>
+      <p class="path"><b>~/.cache/omarchy-org/theme.css</b> — override CSS (served, injected)</p>
+      <p class="path"><b>~/.cache/omarchy-org/theme.json</b> — machine-readable palette + rgb tuples</p>
+      <p class="path"><b>~/.cache/omarchy-org/background</b> — current wallpaper copy (also <code>background.png/jpg</code> symlink)</p>
+      <p class="path"><b>http://127.0.0.1:17823/theme.css</b> — view in browser to debug</p>
+      <p class="path"><b>http://127.0.0.1:17823/theme.json</b> — <code>{"theme":"neo-eldritch","mode":"dark",...}</code></p>
+    </div>
+
+    <h2 class="section-title" id="not-stylus">why not pure Stylus / Stylish?</h2>
+    <div class="callout callout--warn"><b>Blocked by browser security.</b> <code>omarchy.org</code> is <code>https</code>. A Stylus <code>@import url("http://127.0.0.1:17823/theme.css")</code> is <i>mixed active content</i> and browsers block it. Same for <code>file:///</code> imports. The userscript's <code>GM_xmlhttpRequest</code> runs in the extension context and bypasses both mixed-content and CORS — that's why this uses a userscript.</div>
+    <p class="section-sub">If you insist on Stylus: enable <code>chrome://flags/#allow-insecure-localhost</code> (Chrome) or use an <code>https</code> localhost with <code>mkcert</code> — not recommended. Use Violentmonkey.</p>
+
+    <h2 class="section-title" id="verify">verify it works</h2>
+    <pre><button class="copy" data-copy>copy</button><code><span class="g">curl</span> -s http://127.0.0.1:17823/theme.css | <span class="g">grep</span> -E "Theme:|background-night|terminal-blue"
+<span class="g">curl</span> -s http://127.0.0.1:17823/theme.json | <span class="g">python3</span> -m json.tool
+<span class="g">systemctl</span> --user is-active omarchy-org-theme-server && <span class="g">echo</span> "bridge up"
+<span class="g">omarchy</span> theme set tokyo-night && <span class="g">curl</span> -s http://127.0.0.1:17823/theme.css | <span class="g">grep</span> Theme:</code></pre>
+    <p class="section-sub">Browser: DevTools → Console → <code>omarchy-org</code> → <code>[omarchy-org] applied tokyo-night 2.6K</code>. If nothing, check Violentmonkey has the script enabled and <code>127.0.0.1</code> allowed.</p>
+
+    <h2 class="section-title" id="wallpaper">optional — wallpaper on omarchy.org</h2>
+    <p class="section-sub">Disabled by default (too noisy). The builder already copies your wallpaper to <code>~/.cache/omarchy-org/background</code> and serves it. To enable:</p>
+    <pre><button class="copy" data-copy>copy</button><code><span class="g">nano</span> ~/.cache/omarchy-org/theme.css
+<span class="c"># uncomment the body::before block at the bottom:</span>
+<span class="c"># body::before { background: url("http://127.0.0.1:17823/background") center/cover ... }</span>
+<span class="c"># then tell the builder not to overwrite your edit, or edit the builder template:</span>
+<span class="g">nano</span> ~/.local/bin/omarchy-org-theme-build  <span class="c"># remove the comment wrapping</span></code></pre>
+    <p class="small">Tip: lower <code>opacity: 0.12</code> → <code>0.06</code> for subtler. Served as PNG/JPG sniffed from magic bytes.</p>
+
+    <h2 class="section-title" id="troubleshoot">troubleshoot & uninstall</h2>
+    <div class="grid">
+      <div class="box"><div class="box-subtitle">common fixes</div>
+        <p><b>Stays Tokyo Night:</b></p>
+        <pre><button class="copy" data-copy>copy</button><code><span class="g">systemctl</span> --user status omarchy-org-theme-server
+<span class="g">curl</span> -v http://127.0.0.1:17823/theme.css 2>&1 | <span class="g">head</span>
+<span class="g">ls</span> ~/.config/omarchy/hooks/theme-set.d/99-omarchy-org-sync.sh
+<span class="g">~/.local/bin/omarchy-org-theme-build</span> && <span class="g">curl</span> -s http://127.0.0.1:17823/theme.css | <span class="g">head</span></code></pre>
+        <p class="small">Violentmonkey → script → ensure checkmark is on, Tampermonkey → Details → <code>@connect 127.0.0.1</code> allowed. Reload omarchy.org with <code>Ctrl+Shift+R</code>.</p>
+        <p><b>Port 17823 taken:</b> <code>ss -tlnp | grep 17823</code> → edit <code>PORT</code> in both server + userscript (<code>URL_CSS</code>).</p>
+        <p><b>Light theme unreadable:</b> ensure <code>theme.css</code> has <code>color-scheme: light</code> near top — rebuild.</p>
+      </div>
+      <div class="box"><div class="box-subtitle">uninstall</div>
+        <pre><button class="copy" data-copy>copy</button><code><span class="c"># stop server + remove bridge</span>
+<span class="g">systemctl</span> --user disable --now omarchy-org-theme-server.service
+<span class="g">rm</span> ~/.config/systemd/user/omarchy-org-theme-server.service
+<span class="g">rm</span> ~/.config/omarchy/hooks/theme-set.d/99-omarchy-org-sync.sh
+<span class="g">rm</span> ~/.local/bin/omarchy-org-theme-build ~/.local/bin/omarchy-org-theme-server
+<span class="g">systemctl</span> --user daemon-reload
+<span class="g">rm</span> -rf ~/.cache/omarchy-org
+<span class="c"># browser: Violentmonkey → remove omarchy.org script</span></code></pre>
+        <p class="small">Omarchy themes themselves untouched. <code>omarchy theme set</code> keeps working.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title" id="download">download</h2>
+    <div class="cta-row">
+      <a class="btn" href="omarchy.org.user.js" download>omarchy.org.user.js — userscript</a>
+      <a class="btn btn--ghost" href="install.sh" download>install.sh — one-liner</a>
+      <a class="btn btn--ghost" href="http://127.0.0.1:17823/theme.css" target="_blank">live theme.css</a>
+      <a class="btn btn--ghost" href="http://127.0.0.1:17823/theme.json" target="_blank">live theme.json</a>
+    </div>
+    <p class="small" style="margin-top:1rem">Installed size: 2 scripts + 1 service + 1 hook. No npm, no build, no root. Works offline. <code>dirty.pizza/omarchy-www-theme</code> → <code>dirty.pizza/omarchy-www-theme/</code> (trailing slash is fine — GitHub Pages).</p>
+
+    <footer>
+      DEVI GARCIA — <a href="https://github.com/Deoxizn/deoxizn.github.io" class="link" target="_blank" rel="noopener">DIRTY.PIZZA</a><br/>
+      SERIOUS SYSTEMS. QUESTIONABLE DOMAIN.<br/>
+      <a href="/" class="link">← back to dirty.pizza</a> · <a href="https://omarchy.org" class="link" target="_blank" rel="noopener">omarchy.org</a> · <a href="https://github.com/basecamp/omarchy" class="link" target="_blank" rel="noopener">omarchy on github</a><br/>
+      © 2025–2026 INTERNAL_MAINFRAME · <span class="footer-comment">// omarchy-www-theme v1.0.0</span>
+    </footer>
+  </div>
+
+  <script>
+    function updateClock(){ document.getElementById("clock").innerText = new Date().toLocaleTimeString([], {hour12:false}); }
+    setInterval(updateClock,1000); updateClock();
+    const isMobile = matchMedia("(max-width:720px)").matches;
+    const CHAR_DELAY = isMobile ? 42 : 22;
+    const LINE_DELAY = isMobile ? 380 : 200;
+    const terminal = document.getElementById("terminal");
+    const output = [
+      "Last login: " + new Date().toString().slice(0,24) + " on tty1",
+      "Unauthorized toppings will be removed.",
+      "",
+      "$ cat /etc/domain",
+      "dirty.pizza/omarchy-www-theme",
+      "",
+      "$ omarchy theme current",
+      "neo-eldritch",
+      "",
+      "$ curl -s http://127.0.0.1:17823/theme.json | jq .theme",
+      "\"neo-eldritch\"",
+      "",
+      "$ xdg-open https://omarchy.org    # now in neo-eldritch",
+      "[ omarchy.org → 127.0.0.1:17823/theme.css → GM_xmlhttpRequest ]",
+    ];
+    let line=0,char=0;
+    function type(){
+      if(line>=output.length){ terminal.innerHTML+='<span class="cursor"></span>'; return; }
+      if(char===0){ const d=document.createElement("div"); d.className="terminal-line"; if(line===1) d.classList.add("danger-text"); terminal.appendChild(d); }
+      const text=output[line], el=terminal.lastChild;
+      if(text===""){ el.innerHTML="&nbsp;"; line++; char=0; setTimeout(type, LINE_DELAY); return; }
+      const ch=text[char];
+      if(ch==="*") el.innerHTML+='<span class="p-topping">*</span>';
+      else if(ch==="-") el.innerHTML+='<span class="p-crust">-</span>';
+      else el.innerHTML+= ch===" "?"&nbsp;":ch;
+      char++; if(char===text.length){ line++; char=0; setTimeout(type,LINE_DELAY); } else setTimeout(type, CHAR_DELAY);
+    }
+    setTimeout(type,400);
+
+    // copy buttons
+    document.querySelectorAll(".copy").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const pre=btn.closest("pre");
+        const code=pre.querySelector("code").innerText;
+        navigator.clipboard.writeText(code).then(()=>{
+          const o=btn.innerText; btn.innerText="copied"; btn.classList.add("ok");
+          setTimeout(()=>{ btn.innerText=o; btn.classList.remove("ok"); },1300);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
