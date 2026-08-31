@@ -92,16 +92,20 @@
         line-height: 1.4;
         text-shadow: 0 0 6px rgba(51, 255, 153, .15);
       }
-      .terminal-line { min-height: 1.2em; }
-      .cursor {
-        display: inline-block;
-        width: 8px;
-        height: 15px;
-        margin-left: 5px;
-        background: var(--accent);
-        animation: blink 1s infinite;
+      .terminal-line, .terminal-prompt { min-height: 1.2em; }
+      .terminal-prompt { display: flex; }
+      .terminal-input {
+        flex: 1;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: inherit;
+        caret-color: var(--accent);
+        font: inherit;
+        text-shadow: inherit;
       }
-      @keyframes blink { 50% { opacity: 0; } }
 
       .section-title {
         margin: 2rem 0;
@@ -315,27 +319,72 @@
         "$ status",
         "AVAILABLE_FOR_THE_RIGHT_PROBLEM",
       ];
+      const commands = {
+        help: "commands: help, whoami, projects, contact, status, clear",
+        whoami: "jonathan — designer, developer, maker",
+        projects: "make-it-rain, tetromino, pantheon, anytype-sync, amplenote-spaced-repetition, ghostlist",
+        contact: "jonathanjameswagner@proton.me · github.com/frostmute · linkedin.com/in/jonathanjwagner",
+        status: "AVAILABLE_FOR_THE_RIGHT_PROBLEM",
+      };
+      let prompt;
+      let typingLine;
       let line = 0;
       let char = 0;
-      function type() {
-        if (line >= output.length) {
-          terminal.insertAdjacentHTML("beforeend", '<span class="cursor" aria-hidden="true"></span>');
-          return;
+
+      function appendLine(text) {
+        const element = document.createElement("div");
+        element.className = "terminal-line";
+        element.textContent = text;
+        terminal.insertBefore(element, prompt);
+      }
+
+      function run(command) {
+        appendLine(`$ ${command}`);
+        if (command === "clear") {
+          line = output.length;
+          typingLine = null;
+          [...terminal.querySelectorAll(".terminal-line")].forEach((line) => line.remove());
+        } else if (command) {
+          appendLine(commands[command] || `command not found: ${command}. Type "help".`);
         }
+      }
+
+      function mountPrompt() {
+        prompt = document.createElement("form");
+        prompt.className = "terminal-prompt";
+        prompt.setAttribute("aria-label", "Terminal command input");
+        const marker = document.createElement("span");
+        marker.textContent = "$ ";
+        const input = document.createElement("input");
+        input.className = "terminal-input";
+        input.autocomplete = "off";
+        input.setAttribute("aria-label", "Terminal command");
+        prompt.append(marker, input);
+        prompt.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const command = input.value.trim().toLowerCase();
+          input.value = "";
+          run(command);
+        });
+        terminal.appendChild(prompt);
+        terminal.addEventListener("click", () => input.focus());
+      }
+
+      function type() {
+        if (line >= output.length) return;
         if (char === 0) {
-          const element = document.createElement("div");
-          element.className = "terminal-line";
-          terminal.appendChild(element);
+          typingLine = document.createElement("div");
+          typingLine.className = "terminal-line";
+          terminal.insertBefore(typingLine, prompt);
         }
         const text = output[line];
-        const element = terminal.lastElementChild;
         if (text === "") {
-          element.innerHTML = "&nbsp;";
+          typingLine.innerHTML = "&nbsp;";
           line++;
           setTimeout(type, lineDelay);
           return;
         }
-        element.textContent += text[char++];
+        typingLine.textContent += text[char++];
         if (char === text.length) {
           line++;
           char = 0;
@@ -344,6 +393,8 @@
           setTimeout(type, charDelay);
         }
       }
+
+      mountPrompt();
       setTimeout(type, 500);
     </script>
   </body>
